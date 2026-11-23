@@ -48,7 +48,7 @@
 // Rejected: G, which asked a question mid-text ("...friends about?
 // Describe it...") — that is two sentences, not one.
 
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const PITCH =
@@ -65,6 +65,15 @@ if (PITCH.length < 1 || PITCH.length > 240 || PITCH.trim().length === 0) {
 }
 
 const outDir = process.env.MAKEFUN_OUTPUT_DIR ?? "/output";
+const outFile = join(outDir, "entry.txt");
 mkdirSync(outDir, { recursive: true });
-writeFileSync(join(outDir, "entry.txt"), PITCH, "utf8");
-console.log(`wrote ${PITCH.length}-char pitch to ${join(outDir, "entry.txt")}`);
+writeFileSync(outFile, PITCH, "utf8");
+
+// Read back what was written: the entry that gets judged is the file, not
+// the constant, so verify the file itself is exactly the pitch (no trailing
+// newline added, no encoding surprise).
+const written = readFileSync(outFile, "utf8");
+if (written !== PITCH) {
+  throw new Error("entry.txt does not match the pitch exactly");
+}
+console.log(`wrote ${PITCH.length}-char pitch to ${outFile}`);
